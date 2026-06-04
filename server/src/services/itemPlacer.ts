@@ -41,6 +41,7 @@ export function placeItems(
   itemTypes: ItemType[],
   count: number,
 ): ItemPlacement[] {
+  if (!itemTypes.length) return [];
   const rng = seedrandom(`items:${seed}`);
   const available = shuffle(passableCells(grid), rng);
 
