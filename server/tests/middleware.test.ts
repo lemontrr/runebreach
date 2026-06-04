@@ -111,7 +111,7 @@ describe('errorHandler()', () => {
   it('attaches playerId from req.auth to log context', async () => {
     const app = express();
     app.use((req: express.Request & { auth?: { playerId: string } }, _res, next) => {
-      req.auth = { playerId: 'test-player-id' };
+      req.auth = { playerId: 'test-player-id', jti: 'test-jti', exp: Math.floor(Date.now()/1000) + 3600 };
       next(new AppError('test', 400, 'TEST'));
     });
     app.use(errorHandler);
