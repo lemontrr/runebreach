@@ -4,7 +4,7 @@ import {
   startRegistration,
   browserSupportsWebAuthn,
 } from '@simplewebauthn/browser';
-import { api, ApiError } from '../api/client.js';
+import { api } from '../api/client.js';
 
 type RegistrationState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -41,7 +41,7 @@ export default function Register() {
 
       let credential;
       try {
-        credential = await startRegistration({ optionsJSON: options });
+        credential = await startRegistration(options);
       } catch (err) {
         // User cancelled or authenticator error — generic message, not browser detail
         setState('error');
