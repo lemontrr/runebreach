@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/auth.js';
 import { playersRouter } from './routes/players.js';
 import { classesRouter } from './routes/classes.js';
+import { sessionsRouter } from './routes/sessions.js';
 
 export function createApp(): express.Application {
   const app = express();
@@ -33,7 +34,7 @@ export function createApp(): express.Application {
   app.use('/auth', authRouter);
   app.use('/players', playersRouter);
   app.use('/classes', classesRouter);
-  // /sessions router registered in Wave 4
+  app.use('/sessions', sessionsRouter);
 
   // 404 for unmatched routes
   app.use((_req, res) => {

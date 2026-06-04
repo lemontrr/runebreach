@@ -32,6 +32,7 @@ export function placeMonsters(
   monsterTypes: MonsterType[],
   count: number,
 ): MonsterPlacement[] {
+  if (!monsterTypes.length) return [];
   const rng = seedrandom(`monsters:${seed}`);
 
   const available: [number, number][] = [];
