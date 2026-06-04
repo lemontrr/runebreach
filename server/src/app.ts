@@ -6,6 +6,9 @@ import {
   requireJson,
 } from './middleware/security.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { authRouter } from './routes/auth.js';
+import { playersRouter } from './routes/players.js';
+import { classesRouter } from './routes/classes.js';
 
 export function createApp(): express.Application {
   const app = express();
@@ -27,11 +30,10 @@ export function createApp(): express.Application {
     res.status(200).json({ status: 'ok' });
   });
 
-  // Routes registered here in later waves
-  // app.use('/auth', authRouter);
-  // app.use('/players', playersRouter);
-  // app.use('/classes', classesRouter);
-  // app.use('/sessions', sessionsRouter);
+  app.use('/auth', authRouter);
+  app.use('/players', playersRouter);
+  app.use('/classes', classesRouter);
+  // /sessions router registered in Wave 4
 
   // 404 for unmatched routes
   app.use((_req, res) => {

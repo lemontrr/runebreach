@@ -11,6 +11,9 @@ process.env.WEBAUTHN_ORIGIN = 'http://localhost:5173';
 process.env.CORS_ORIGIN = 'http://localhost:5173';
 
 describe('Rate limit middleware handlers', () => {
+  beforeAll(() => { process.env.NODE_ENV = 'production'; });
+  afterAll(() => { process.env.NODE_ENV = 'test'; });
+
   it('authRateLimit returns 429 when limit exceeded', async () => {
     const app = express();
     app.use(authRateLimit);

@@ -15,12 +15,6 @@ export interface AuthContext {
   exp: number;
 }
 
-declare module 'express' {
-  interface Request {
-    auth?: AuthContext;
-  }
-}
-
 export async function requireAuth(
   req: Request,
   _res: Response,

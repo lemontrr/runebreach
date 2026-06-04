@@ -40,6 +40,8 @@ export const corsMiddleware = cors({
 export const authRateLimit = rateLimit({
   windowMs: 60_000,
   max: 10,
+  // Check env at request time so test environment can toggle without module reload
+  skip: () => process.env.NODE_ENV === 'test',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
@@ -51,6 +53,7 @@ export const authRateLimit = rateLimit({
 export const gameRateLimit = rateLimit({
   windowMs: 60_000,
   max: 100,
+  skip: () => process.env.NODE_ENV === 'test',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {

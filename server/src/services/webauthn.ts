@@ -97,7 +97,8 @@ export async function finishAuthentication(
     expectedRPID: config.webauthn.rpId,  // RPID binding assertion (RISK-002)
     credential: {
       id: credentialId,
-      publicKey,
+      // Cast required: pg Buffer is Uint8Array<ArrayBufferLike>; simplewebauthn expects ArrayBuffer
+      publicKey: publicKey as unknown as Uint8Array<ArrayBuffer>,
       counter: currentSignCount,
     },
     requireUserVerification: false,
