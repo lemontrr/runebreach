@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server:
+    name: Server — build, lint, test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      # Pinned to SHA (RISK-011 — no mutable tag)
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test -- --ci --coverageReporters=text
+        env:
+          # Minimal test env vars
+          DATABASE_URL: postgres://test:test@localhost/test
+          JWT_SECRET: test-secret-min-32-chars-padding!!
+          WEBAUTHN_RP_ID: localhost
+          WEBAUTHN_RP_NAME: Test
+          WEBAUTHN_ORIGIN: http://localhost:5173
+          CORS_ORIGIN: http://localhost:5173
+
+  client:
+    name: Client — build, lint, test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm test -- --run --coverage
+
+  bicep-check:
+    name: Bicep — no plaintext secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Fail if plaintext secret values in Bicep
+        run: |
+          if grep -rE "(password|secret|key)\s*[:=]\s*['\"][^@']" infra/ --include="*.bicep" --include="*.json" | grep -v "getSecret\|reference\|SecretUri\|SUB_ID\|PG-ADMIN"; then
+            echo "ERROR: Potential plaintext secret in Bicep templates"
+            exit 1
+          fi
+          echo "No plaintext secrets found."
