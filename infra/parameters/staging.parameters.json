@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": { "value": "staging" },
+    "administratorLogin": { "value": "runeadmin" },
+    "administratorPassword": {
+      "reference": {
+        "keyVault": { "id": "/subscriptions/SUB_ID/resourceGroups/runebreach-dev/providers/Microsoft.KeyVault/vaults/runebreach-dev-kv" },
+        "secretName": "PG-ADMIN-PASSWORD"
+      }
+    }
+  }
+}
