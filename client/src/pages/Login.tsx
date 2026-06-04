@@ -5,7 +5,7 @@ import {
   browserSupportsWebAuthn,
 } from '@simplewebauthn/browser';
 import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
-import { api, ApiError } from '../api/client.js';
+import { api } from '../api/client.js';
 import { authStore } from '../store/auth.js';
 
 type LoginState = 'idle' | 'loading' | 'error';
@@ -61,15 +61,6 @@ export default function Login() {
     } catch {
       setState('error');
       setErrorMsg('Sign in failed. Please check your Player ID and try again.');
-    }
-  }
-
-  async function handleLogout() {
-    try {
-      await api.post('/auth/logout');
-    } finally {
-      authStore.clearToken();
-      navigate('/login');
     }
   }
 
