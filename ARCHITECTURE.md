@@ -30,7 +30,7 @@
 ```
 Browser (ReactJS SPA)
   └── REST API calls ──► Node.js API Server
-                              ├── Auth service (WebAuthn / Passkey)
+                              ├── Auth service (Passkey / WebAuthn)
                               ├── Session service (new game, state updates)
                               ├── Maze generator (server-side, seeded RNG)
                               └── Relational DB (Azure SQL / PostgreSQL — TO BE DECIDED)
@@ -47,15 +47,15 @@ Browser (ReactJS SPA)
 - Stateless per-request; game state lives in DB
 - `POST /sessions` — initializes a new game: generates maze, places items and monsters, persists state
 - Session and maze management endpoints (navigate, interact, combat) — `TO BE DECIDED` based on turn model
-- WebAuthn endpoints for Passkey registration and assertion
+- Passkey (WebAuthn) endpoints for registration and assertion
 
 **Maze Generator**
 - Runs server-side at session creation
-- Seeded RNG guarantees unique layouts per session and prevents client manipulation
-- Algorithm choice `TO BE DECIDED` (constraint: must produce traversable mazes with variable branching)
+- Seeded RNG guarantees unique layouts per session and prevents client manipulation; this guarantee holds regardless of traversal algorithm chosen
+- Traversal algorithm `TO BE DECIDED` (constraint: must produce fully traversable mazes with variable branching)
 
 **Catalog (data layer)**
-- `PlayerClass` + `ClassAbility` — class definitions, base stats (HP, Attack, Defense, Speed), abilities
+- `PlayerClass` (1:N) `ClassAbility` — class definitions, base stats (HP, Attack, Defense, Speed), abilities
 - `ItemType` — item categories (weapon, armor, potion, treasure), stat effects
 - `MonsterType` — monster stats and behavior flags
 - Extending the game with new classes/monsters/items = new catalog rows, no code changes
@@ -69,7 +69,6 @@ Browser (ReactJS SPA)
 
 - Single-player only (no multiplayer)
 - One active `GameSession` per player at a time
-- Game is turn-based (`TO BE DECIDED` — affects API design significantly)
 - Maze layout stored as serialized data (not re-generated on each request)
 - All game state is server-authoritative; client is a display/input layer only
 

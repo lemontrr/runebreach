@@ -7,7 +7,7 @@
 
 ## 2. Items
 
-- Items (weapons, armor, potions, treasure) are placed throughout the maze at game start.
+- Items (including weapons, armor, potions, and treasure) are placed throughout the maze at game start.
 - Items are distributed randomly across the maze.
 
 ## 3. Monsters
@@ -23,6 +23,11 @@ The player selects one class before each game begins:
 |---------|--------------------------------------------------|
 | Mage    | A spellcaster who uses magic for ranged attacks.  |
 | Warrior | A melee fighter with high defense and strength.   |
-| Archer  | A ranged attacker with high speed and precision.  |
+| Archer  | A physical ranged attacker with high speed and precision. |
 
-Each class has distinct starting values for HP, Attack, Defense, and Speed, as well as unique abilities that influence gameplay.
+Each class has distinct starting values for HP, Attack, Defense, and Speed, as well as unique abilities that influence gameplay (TO BE DECIDED).
+
+## 5. Win / Loss Condition
+
+- The conditions under which a game session is won or lost are not yet defined.
+- `TO BE DECIDED` — required before gameplay loop can be fully specified.
