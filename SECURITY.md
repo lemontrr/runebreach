@@ -1,19 +1,5 @@
 # Runebreach — Security
 
-## Required Security Inputs
-
-- **Auth model:** Passkey (WebAuthn); short-lived server-issued session token per game session; no passwords stored
-- **Client:** ReactJS SPA — holds no authoritative game state; all state transitions computed server-side
-- **Server:** Node.js REST API — server-authoritative for all game state
-- **Database:** Relational, 3NF (vendor TO BE DECIDED — Azure SQL or PostgreSQL)
-- **Deployment:** Azure (Bicep templates)
-- **PII in scope:** Player display name + WebAuthn credential IDs (GDPR applies)
-- **Right to erasure:** Player deletion must cascade to `GameSession`, `ItemPlacement`, `MonsterPlacement`
-- **Data retention policy:** `TO BE DECIDED` — required before production
-- **Lawful basis for processing:** `TO BE DECIDED`
-
----
-
 ## Provisional Security Rules
 
 ### HTTP Boundary
@@ -77,18 +63,3 @@
 - Management and admin endpoints: not exposed to the public internet; restrict to Azure VNET or private subnet
 - Separate environments for dev, staging, and prod; prod secrets must not be accessible in lower environments
 - CI pipeline: secret scanning enabled on every PR (GitHub Advanced Security or equivalent)
-
----
-
-## Prompt Placeholders To Resolve
-
-These placeholders are resolved from the confirmed stack in ARCHITECTURE.md. Replace each in tooling or prompt configuration as appropriate.
-
-| Placeholder | Resolved Value | Source |
-|---|---|---|
-| `{{MANICODE_CODE_QUALITY_PROMPT}}` | `low cyclomatic complexity, low cognitive complexity, separation of concerns` | Convention |
-| `{{MANICODE_API_SECURITY_PROMPT}}` | `https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html` | ARCHITECTURE.md: REST API |
-| `{{MANICODE_BACKEND_FRAMEWORK_PROMPT}}` | `https://nodejs.org/learn/getting-started/security-best-practices` | ARCHITECTURE.md: Node.js |
-| `{{MANICODE_FRONTEND_FRAMEWORK_PROMPT}}` | `Assume all data added to React templates is untrusted; apply React 19 security best practices` | ARCHITECTURE.md: ReactJS |
-| `{{MANICODE_AUTH_PROMPT}}` | `AAL2 via Passkey (WebAuthn); no passwords; short-lived session tokens; token denylist for revocation` | ARCHITECTURE.md: Passkey auth |
-| `{{MANICODE_DEPLOYMENT_PROMPT}}` | `Azure (Bicep templates); Key Vault for secrets; VNET-restricted management endpoints` | ARCHITECTURE.md: Azure |
