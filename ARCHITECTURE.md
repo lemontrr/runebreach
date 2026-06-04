@@ -22,7 +22,7 @@ Browser (ReactJS SPA)
 
 **Node.js API Server**
 - Stateless per-request; game state lives in DB
-- `POST /sessions` — initializes a new game: generates maze, places items and monsters, persists state
+- `POST /sessions` — initializes a new game: generates maze, places items and monsters, persists state; session creation is atomic — DB unique constraint on `(player_id, state=active)` is the authoritative guard against concurrent duplicate sessions
 - Session and maze management endpoints (navigate, interact, combat) — `TO BE DECIDED` based on turn model
 - Passkey (WebAuthn) endpoints for registration and assertion
 
@@ -36,6 +36,7 @@ Browser (ReactJS SPA)
 - `ItemType` — item categories (weapon, armor, potion, treasure), stat effects
 - `MonsterType` — monster stats and behavior flags
 - Extending the game with new classes/monsters/items = new catalog rows, no code changes
+- Catalog tables are **read-only at application runtime**; enforced by a least-privilege DB role (no INSERT/UPDATE/DELETE on catalog tables for the app user)
 
 **Auth Service**
 - Passkey (WebAuthn) only — no passwords stored

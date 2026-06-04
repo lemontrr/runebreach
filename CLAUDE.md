@@ -3,6 +3,7 @@
 @REQUIREMENTS.md
 @ARCHITECTURE.md
 @Security.md
+@THREAT_MODEL.md
 
 ## Working Rules
 
@@ -40,3 +41,4 @@
 - [ ] JWT signing key rotation schedule — Security.md §Secret Handling
 - [ ] GDPR data retention policy and lawful basis — Security.md §GDPR
 - [ ] Player class base stats (HP, Attack, Defense, Speed per class)
+- [ ] Game session inactivity timeout (hours before session auto-abandoned) — Security.md §Input Validation
