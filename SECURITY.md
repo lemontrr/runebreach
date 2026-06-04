@@ -16,15 +16,20 @@
 - CORS: `Access-Control-Allow-Origin` restricted to the deployed SPA origin; no wildcard
 - Rate limiting on all endpoints; respond `429` on breach; apply stricter limits to auth and registration endpoints
 - Reject oversized request bodies; respond `413` on breach
+- Remove `X-Powered-By` and all server version/framework identification headers from every response
 
 ### Authentication and Authorization
 
 - Passkey (WebAuthn) only — no passwords, no password-reset flows, no magic links
+- WebAuthn: assert RPID on every registration and assertion; reject any response where RPID does not match the server's configured origin (RISK-002)
+- Account enumeration prevention: `POST /auth/authenticate/begin` MUST return an identical response — including response time — whether or not the `playerId` exists; use a dummy challenge for unknown IDs (RISK-001)
 - Every protected endpoint validates session token before any processing
 - JWT validation: assert explicit algorithm; reject `alg: none`; validate `iss`, `aud`, `exp`, `nbf`
+- Token denylist MUST persist across service restarts — Redis with AOF/RDB persistence or a DB-backed table; never in-memory only (RISK-010)
 - Token denylist: support early invalidation on logout and on player account deletion
 - Game session endpoints: assert `token.player_id === GameSession.player_id` on every request — no cross-player access
 - No game state accepted from client; client sends actions only; server computes outcomes
+- CSRF: this API uses `Authorization: Bearer` headers only — CSRF tokens are not required; tokens MUST NOT be stored in cookies (RISK-005)
 
 ### Input Validation (Node.js API)
 
@@ -33,6 +38,8 @@
 - All database queries use parameterized statements — no string concatenation with user input
 - Maze seed never derived from or exposed to client-controlled input
 - Log all input validation failures as potential attack signals
+- `POST /sessions`: session creation must be atomic — handle DB unique-constraint violation on `(player_id, state=active)` as `409 Conflict`, not `500` (RISK-003)
+- Active `GameSession` records with no activity for longer than `[TO BE DECIDED — required before production]` MUST be marked `abandoned`; prevents indefinite resource consumption and stale-token risk (RISK-004)
 
 ### Secret Handling
 
@@ -57,9 +64,25 @@
 - Lawful basis for processing: `TO BE DECIDED`
 - No PII in logs, error messages, or any event emitted outside the service boundary
 
+### Database Security
+
+- DB application user: least-privilege role — `INSERT`, `SELECT`, `UPDATE`, `DELETE` on runtime tables only; `SELECT` only on catalog tables (`PlayerClass`, `ClassAbility`, `ItemType`, `MonsterType`); no `DDL` rights (RISK-006)
+- DB connections must use SSL/TLS with certificate validation enabled; plaintext connections rejected (RISK-007)
+- Query timeout and connection pool maximum size must be configured; slow-query threshold alerting enabled (RISK-008)
+- DB private endpoint only — no public IP; DB not reachable from outside the Azure VNET
+
 ### Deployment and CI/CD
 
 - Azure Bicep templates: no hardcoded secrets; all secrets referenced from Azure Key Vault
+- Azure managed identity for the API server: `Key Vault Secrets User` role only — no broader resource group permissions (RISK-009)
 - Management and admin endpoints: not exposed to the public internet; restrict to Azure VNET or private subnet
 - Separate environments for dev, staging, and prod; prod secrets must not be accessible in lower environments
 - CI pipeline: secret scanning enabled on every PR (GitHub Advanced Security or equivalent)
+- All GitHub Actions steps must be pinned to a specific commit SHA, not a mutable version tag (e.g., `actions/checkout@<sha>`) (RISK-011)
+- All secrets referenced in GitHub Actions workflows must be masked; never echo or print secret values in workflow logs (RISK-012)
+- `package-lock.json` must be committed and kept up to date; dependency review GitHub Action enabled on every PR to flag new high/critical CVEs (RISK-013)
+
+### Client Security
+
+- Content-Security-Policy on all responses from the API and the SPA host: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' <api-origin>; frame-ancestors 'none'; base-uri 'self'; form-action 'self'` — substitute `<api-origin>` with the deployed API origin (RISK-014)
+- No use of `dangerouslySetInnerHTML` in the React SPA; all data from the API treated as untrusted before rendering
