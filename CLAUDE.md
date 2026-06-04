@@ -4,17 +4,6 @@
 @ARCHITECTURE.md
 @Security.md
 
-## Project Snapshot
-Bootstrap phase — specs defined, no implementation yet. Web-based procedural dungeon game.
-
-| Layer | Technology |
-|---|---|
-| Client | ReactJS SPA |
-| API | Node.js REST |
-| Auth | Passkey (WebAuthn) + short-lived JWT |
-| DB | Relational 3NF — Azure SQL or PostgreSQL (TBD) |
-| Deploy | Azure (Bicep) |
-
 ## Working Rules
 
 ### Spec and Scope
