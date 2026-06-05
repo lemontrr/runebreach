@@ -339,10 +339,10 @@ function makeRNG(seed) {
 }
 
 // ── Maze ───────────────────────────────────────────────────────────────────
-const N = 1, S = 2, E = 4, W = 8;
-const OPP = { [N]: S, [S]: N, [E]: W, [W]: E };
-const DR  = { [N]: -1, [S]: 1, [E]: 0, [W]: 0 };
-const DC  = { [N]: 0, [S]: 0, [E]: 1, [W]: -1 };
+const N = 1, S = 2, E = 4, WEST = 8;
+const OPP = { [N]: S, [S]: N, [E]: WEST, [WEST]: E };
+const DR  = { [N]: -1, [S]: 1, [E]: 0, [WEST]: 0 };
+const DC  = { [N]: 0, [S]: 0, [E]: 1, [WEST]: -1 };
 
 function buildMaze(width, height, rng) {
   const cells = Array.from({ length: height }, () => new Int8Array(width));
@@ -351,7 +351,7 @@ function buildMaze(width, height, rng) {
   vis[0][0] = 1;
   while (stack.length) {
     const [r, c] = stack[stack.length - 1];
-    const dirs = rng.shuffle([N, S, E, W]).filter(d => {
+    const dirs = rng.shuffle([N, S, E, WEST]).filter(d => {
       const nr = r + DR[d], nc = c + DC[d];
       return nr >= 0 && nr < height && nc >= 0 && nc < width && !vis[nr][nc];
     });
@@ -492,7 +492,7 @@ function renderMaze() {
       const ws = `stroke="#374151" stroke-width="${WALL}" stroke-linecap="square"`;
       if (!(bits & N)) chunks.push(`<line x1="${x}" y1="${y}" x2="${x+CELL}" y2="${y}" ${ws}/>`);
       if (!(bits & S)) chunks.push(`<line x1="${x}" y1="${y+CELL}" x2="${x+CELL}" y2="${y+CELL}" ${ws}/>`);
-      if (!(bits & W)) chunks.push(`<line x1="${x}" y1="${y}" x2="${x}" y2="${y+CELL}" ${ws}/>`);
+      if (!(bits & WEST)) chunks.push(`<line x1="${x}" y1="${y}" x2="${x}" y2="${y+CELL}" ${ws}/>`);
       if (!(bits & E)) chunks.push(`<line x1="${x+CELL}" y1="${y}" x2="${x+CELL}" y2="${y+CELL}" ${ws}/>`);
     }
   }
@@ -529,7 +529,7 @@ function updateHUD() {
 const KEY_TO_DIR = {
   ArrowUp: N, w: N, W: N,
   ArrowDown: S, s: S, S: S,
-  ArrowLeft: W, a: W, A: W,
+  ArrowLeft: WEST, a: WEST, A: WEST,
   ArrowRight: E, d: E, D: E,
 };
 
