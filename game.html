@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Runebreach</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0b0d12;
+  color: #c9d1d9;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.screen { display: none; width: 100%; }
+.screen.active { display: flex; }
+
+/* ── Title ── */
+#screen-title {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 32px;
+  min-height: 100vh;
+}
+
+.game-title {
+  font-size: 72px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #f5a623, #e8d44d, #f5a623);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 0 40px rgba(245,166,35,0.4));
+}
+
+.game-subtitle {
+  font-size: 18px;
+  color: #7a8392;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ── Class Select ── */
+#screen-class {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.class-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.class-card {
+  background: #161b22;
+  border: 2px solid #30363d;
+  border-radius: 12px;
+  padding: 28px 24px;
+  width: 220px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.class-card:hover {
+  border-color: #f5a623;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(245,166,35,0.2);
+}
+
+.class-icon { font-size: 48px; margin-bottom: 12px; }
+.class-name { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #f0f6fc; }
+.class-desc { font-size: 13px; color: #7a8392; margin-bottom: 16px; line-height: 1.5; }
+.class-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
+.stat { background: #0d1117; border-radius: 6px; padding: 6px 8px; }
+.stat-label { color: #7a8392; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.stat-val { font-weight: 700; color: #58a6ff; font-size: 15px; }
+
+/* ── Game ── */
+#screen-game {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+#maze-wrap {
+  overflow: auto;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  background: #0d1117;
+  flex-shrink: 0;
+}
+
+#maze-svg { display: block; }
+
+#hud {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.hud-section {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.hud-class { font-size: 20px; font-weight: 700; color: #f0f6fc; text-align: center; margin-bottom: 4px; }
+.hud-class-icon { font-size: 28px; text-align: center; display: block; }
+
+.hp-label { font-size: 12px; color: #7a8392; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.hp-text { font-size: 13px; font-weight: 600; color: #f0f6fc; margin-bottom: 6px; text-align: right; }
+.hp-bar-bg { background: #21262d; border-radius: 4px; height: 10px; overflow: hidden; }
+.hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #21262d; font-size: 13px; }
+.stat-row:last-child { border-bottom: none; }
+.stat-row .label { color: #7a8392; }
+.stat-row .val { font-weight: 700; color: #58a6ff; }
+
+.score-val { font-size: 28px; font-weight: 900; color: #f5a623; text-align: center; }
+.score-label { font-size: 11px; color: #7a8392; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+
+.inv-title { font-size: 12px; color: #7a8392; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.inv-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.inv-item { font-size: 12px; background: #0d1117; border-radius: 5px; padding: 5px 8px; color: #c9d1d9; }
+.inv-empty { font-size: 12px; color: #3d444d; font-style: italic; }
+
+.keys-hint { font-size: 11px; color: #3d444d; line-height: 1.7; }
+.keys-hint b { color: #7a8392; }
+
+.legend { display: flex; flex-direction: column; gap: 5px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #7a8392; }
+.legend-dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Combat modal ── */
+#modal-combat {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#modal-combat.open { display: flex; }
+
+.combat-box {
+  background: #161b22;
+  border: 2px solid #30363d;
+  border-radius: 14px;
+  padding: 32px;
+  width: 360px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.combat-title { font-size: 22px; font-weight: 700; color: #f0f6fc; margin-bottom: 4px; }
+.combat-monster-hp { font-size: 13px; color: #7a8392; margin-bottom: 20px; }
+.combat-hp-bar-bg { background: #21262d; border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 20px; }
+.combat-hp-bar-fill { height: 100%; background: #ef5350; border-radius: 4px; transition: width 0.3s; }
+.combat-log { min-height: 60px; font-size: 13px; color: #7a8392; line-height: 1.6; margin-bottom: 20px; background: #0d1117; border-radius: 8px; padding: 12px; }
+.combat-log .player-hit { color: #58a6ff; }
+.combat-log .monster-hit { color: #ef5350; }
+.combat-log .event { color: #f5a623; }
+.combat-btns { display: flex; gap: 12px; justify-content: center; }
+
+/* ── Result ── */
+#screen-result {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  min-height: 100vh;
+}
+
+.result-title { font-size: 56px; font-weight: 900; }
+.result-win  { color: #3fb950; filter: drop-shadow(0 0 30px rgba(63,185,80,0.5)); }
+.result-loss { color: #ef5350; filter: drop-shadow(0 0 30px rgba(239,83,80,0.5)); }
+.result-score { font-size: 28px; color: #f5a623; font-weight: 700; }
+.result-msg { font-size: 16px; color: #7a8392; }
+
+/* ── Buttons ── */
+.btn {
+  background: #f5a623;
+  color: #0b0d12;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.btn:hover { background: #e8d44d; transform: scale(1.03); }
+.btn:active { transform: scale(0.98); }
+.btn-secondary {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+}
+.btn-secondary:hover { background: #2d333b; transform: scale(1.03); }
+
+h2 { font-size: 28px; font-weight: 700; color: #f0f6fc; }
+</style>
+</head>
+<body>
+
+<!-- ── Title ── -->
+<div id="screen-title" class="screen active">
+  <div class="game-title">RUNEBREACH</div>
+  <div class="game-subtitle">Procedural Dungeon Crawler</div>
+  <button class="btn" onclick="showScreen('class')">Play</button>
+</div>
+
+<!-- ── Class Select ── -->
+<div id="screen-class" class="screen">
+  <h2>Choose Your Class</h2>
+  <div class="class-grid" id="class-grid"></div>
+</div>
+
+<!-- ── Game ── -->
+<div id="screen-game" class="screen">
+  <div id="maze-wrap"><svg id="maze-svg"></svg></div>
+  <aside id="hud">
+    <div class="hud-section">
+      <span id="hud-icon" class="hud-class-icon"></span>
+      <div id="hud-class" class="hud-class"></div>
+    </div>
+    <div class="hud-section">
+      <div class="hp-label">Hit Points</div>
+      <div id="hud-hp-text" class="hp-text"></div>
+      <div class="hp-bar-bg"><div id="hud-hp-bar" class="hp-bar-fill"></div></div>
+    </div>
+    <div class="hud-section">
+      <div class="stat-row"><span class="label">ATK</span><span id="hud-atk" class="val"></span></div>
+      <div class="stat-row"><span class="label">DEF</span><span id="hud-def" class="val"></span></div>
+      <div class="stat-row"><span class="label">SPD</span><span id="hud-spd" class="val"></span></div>
+    </div>
+    <div class="hud-section">
+      <div class="score-val" id="hud-score">0</div>
+      <div class="score-label">Score</div>
+    </div>
+    <div class="hud-section">
+      <div class="inv-title">Inventory</div>
+      <ul class="inv-list" id="hud-inv"><li class="inv-empty">Nothing yet…</li></ul>
+    </div>
+    <div class="hud-section">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4fc3f7"></div>You</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffd54f"></div>Item</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef5350"></div>Monster</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div>Exit</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#546e7a"></div>Wall</div>
+      </div>
+    </div>
+    <div class="hud-section">
+      <div class="keys-hint">
+        <b>↑↓←→</b> or <b>WASD</b> to move<br>
+        Step on items to collect<br>
+        Step on monsters to fight<br>
+        Reach <b>Exit</b> to win
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ── Combat Modal ── -->
+<div id="modal-combat">
+  <div class="combat-box">
+    <div id="combat-title" class="combat-title"></div>
+    <div id="combat-monster-hp" class="combat-monster-hp"></div>
+    <div class="combat-hp-bar-bg"><div id="combat-hp-bar" class="combat-hp-bar-fill" style="width:100%"></div></div>
+    <div id="combat-log" class="combat-log"></div>
+    <div class="combat-btns">
+      <button class="btn" id="btn-attack" onclick="combatAttack()">⚔ Attack</button>
+      <button class="btn btn-secondary" onclick="combatFlee()">🏃 Flee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Result ── -->
+<div id="screen-result" class="screen">
+  <div id="result-title" class="result-title"></div>
+  <div id="result-score" class="result-score"></div>
+  <div id="result-msg" class="result-msg"></div>
+  <button class="btn" onclick="resetGame()">Play Again</button>
+</div>
+
+<script>
+'use strict';
+
+// ── RNG (Mulberry32 — fast, good distribution) ──────────────────────────────
+function makeRNG(seed) {
+  let s = seed >>> 0;
+  return {
+    next() {
+      s = (s + 0x6D2B79F5) >>> 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    },
+    int(lo, hi) { return lo + Math.floor(this.next() * (hi - lo + 1)); },
+    pick(arr)   { return arr[Math.floor(this.next() * arr.length)]; },
+    shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(this.next() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    },
+  };
+}
+
+// ── Maze ───────────────────────────────────────────────────────────────────
+const N = 1, S = 2, E = 4, W = 8;
+const OPP = { [N]: S, [S]: N, [E]: W, [W]: E };
+const DR  = { [N]: -1, [S]: 1, [E]: 0, [W]: 0 };
+const DC  = { [N]: 0, [S]: 0, [E]: 1, [W]: -1 };
+
+function buildMaze(width, height, rng) {
+  const cells = Array.from({ length: height }, () => new Int8Array(width));
+  const vis   = Array.from({ length: height }, () => new Uint8Array(width));
+  const stack = [[0, 0]];
+  vis[0][0] = 1;
+  while (stack.length) {
+    const [r, c] = stack[stack.length - 1];
+    const dirs = rng.shuffle([N, S, E, W]).filter(d => {
+      const nr = r + DR[d], nc = c + DC[d];
+      return nr >= 0 && nr < height && nc >= 0 && nc < width && !vis[nr][nc];
+    });
+    if (!dirs.length) { stack.pop(); continue; }
+    const d = dirs[0];
+    const nr = r + DR[d], nc = c + DC[d];
+    cells[r][c] |= d;
+    cells[nr][nc] |= OPP[d];
+    vis[nr][nc] = 1;
+    stack.push([nr, nc]);
+  }
+  return cells;
+}
+
+// ── Catalog ────────────────────────────────────────────────────────────────
+const CLASSES = {
+  Mage:    { icon: '🧙', hp: 80,  atk: 14, def: 4,  spd: 9,  desc: 'Arcane spellcaster with deadly ranged magic.' },
+  Warrior: { icon: '⚔️', hp: 130, atk: 9,  def: 12, spd: 5,  desc: 'Iron-clad melee fighter, hard to kill.' },
+  Archer:  { icon: '🏹', hp: 95,  atk: 11, def: 7,  spd: 10, desc: 'Swift and precise, strikes from distance.' },
+};
+
+const ITEM_TYPES = [
+  { name: 'Iron Sword',    cat: 'weapon',   emoji: '🗡',  desc: '+4 ATK', apply: p => { p.atk += 4; } },
+  { name: 'Chain Mail',    cat: 'armor',    emoji: '🛡',  desc: '+4 DEF', apply: p => { p.def += 4; } },
+  { name: 'Health Potion', cat: 'potion',   emoji: '🧪',  desc: '+30 HP', apply: p => { p.hp = Math.min(p.maxHp, p.hp + 30); } },
+  { name: 'Gold Coin',     cat: 'treasure', emoji: '🪙',  desc: '+50 Score', apply: p => { p.score += 50; } },
+];
+
+const MONSTER_TYPES = [
+  { name: 'Goblin',   emoji: '👺', maxHp: 18, atk: 4,  def: 1, reward: 20 },
+  { name: 'Skeleton', emoji: '💀', maxHp: 28, atk: 7,  def: 3, reward: 40 },
+  { name: 'Dragon',   emoji: '🐉', maxHp: 60, atk: 14, def: 9, reward: 100 },
+];
+
+// ── Game state ─────────────────────────────────────────────────────────────
+const W = 20, H = 20, CELL = 24, WALL = 2;
+let rng, maze, items, monsters, player, combat;
+
+function initGame(className) {
+  const cls = CLASSES[className];
+  rng = makeRNG(Date.now() ^ (Math.random() * 0xFFFFFFFF | 0));
+  maze = buildMaze(W, H, rng);
+
+  // Place items — one per category minimum, then random extras, skip (0,0) and (H-1,W-1)
+  const cells = [];
+  for (let r = 0; r < H; r++)
+    for (let c = 0; c < W; c++)
+      if (!(r === 0 && c === 0) && !(r === H - 1 && c === W - 1))
+        cells.push([r, c]);
+  const shuffled = rng.shuffle(cells);
+
+  items = {};
+  let idx = 0;
+  // Guarantee one of each category
+  for (const it of ITEM_TYPES) {
+    if (idx >= shuffled.length) break;
+    const [r, c] = shuffled[idx++];
+    items[`${r},${c}`] = { ...it };
+  }
+  // Fill extras
+  const extra = 6;
+  for (let i = 0; i < extra && idx < shuffled.length; i++, idx++) {
+    const [r, c] = shuffled[idx];
+    if (!items[`${r},${c}`])
+      items[`${r},${c}`] = { ...rng.pick(ITEM_TYPES) };
+  }
+
+  // Place monsters — at least 8, skip item cells and start
+  monsters = {};
+  const usedPositions = new Set(Object.keys(items));
+  usedPositions.add('0,0');
+  usedPositions.add(`${H-1},${W-1}`);
+  let placed = 0;
+  for (const [r, c] of rng.shuffle(cells)) {
+    if (placed >= 14) break;
+    const key = `${r},${c}`;
+    if (usedPositions.has(key)) continue;
+    const mt = rng.pick(MONSTER_TYPES);
+    monsters[key] = { ...mt, hp: mt.maxHp };
+    usedPositions.add(key);
+    placed++;
+  }
+
+  player = {
+    row: 0, col: 0,
+    maxHp: cls.hp, hp: cls.hp,
+    atk: cls.atk, def: cls.def, spd: cls.spd,
+    score: 0,
+    className, inventory: [],
+  };
+
+  combat = null;
+  renderMaze();
+  updateHUD();
+}
+
+// ── SVG rendering ──────────────────────────────────────────────────────────
+function renderMaze() {
+  const svg = document.getElementById('maze-svg');
+  svg.setAttribute('width',  W * CELL);
+  svg.setAttribute('height', H * CELL);
+  svg.setAttribute('viewBox', `0 0 ${W * CELL} ${H * CELL}`);
+
+  const chunks = [];
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      const x = c * CELL, y = r * CELL;
+      const key = `${r},${c}`;
+      const isExit   = r === H - 1 && c === W - 1;
+      const isPlayer = player.row === r && player.col === c;
+      const item     = items[key];
+      const monster  = monsters[key];
+
+      let fill = '#111827';
+      if (isExit)                 fill = '#1a3a20';
+      if (monster && monster.hp > 0) fill = '#2d1414';
+      if (item)                   fill = '#2a2310';
+      if (isPlayer)               fill = '#0d2533';
+
+      chunks.push(`<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${fill}"/>`);
+
+      // Overlays
+      if (isExit && !isPlayer)
+        chunks.push(`<text x="${x+CELL/2}" y="${y+CELL/2+5}" text-anchor="middle" font-size="14" fill="#3fb950">⬛</text>`);
+      if (isExit && !isPlayer)
+        chunks.push(`<rect x="${x+4}" y="${y+4}" width="${CELL-8}" height="${CELL-8}" rx="2" fill="none" stroke="#3fb950" stroke-width="2"/>`);
+      if (monster && monster.hp > 0 && !isPlayer)
+        chunks.push(`<text x="${x+CELL/2}" y="${y+CELL/2+5}" text-anchor="middle" font-size="13">${monster.emoji}</text>`);
+      else if (monster && monster.hp <= 0 && !isPlayer)
+        chunks.push(`<rect x="${x+6}" y="${y+6}" width="${CELL-12}" height="${CELL-12}" rx="2" fill="#1a1a1a"/>`);
+      if (item && !isPlayer && !(monster && monster.hp > 0))
+        chunks.push(`<text x="${x+CELL/2}" y="${y+CELL/2+5}" text-anchor="middle" font-size="12">${item.emoji}</text>`);
+      if (isPlayer)
+        chunks.push(`<text x="${x+CELL/2}" y="${y+CELL/2+5}" text-anchor="middle" font-size="14">🧝</text>`);
+
+      // Walls
+      const bits = maze[r][c];
+      const ws = `stroke="#374151" stroke-width="${WALL}" stroke-linecap="square"`;
+      if (!(bits & N)) chunks.push(`<line x1="${x}" y1="${y}" x2="${x+CELL}" y2="${y}" ${ws}/>`);
+      if (!(bits & S)) chunks.push(`<line x1="${x}" y1="${y+CELL}" x2="${x+CELL}" y2="${y+CELL}" ${ws}/>`);
+      if (!(bits & W)) chunks.push(`<line x1="${x}" y1="${y}" x2="${x}" y2="${y+CELL}" ${ws}/>`);
+      if (!(bits & E)) chunks.push(`<line x1="${x+CELL}" y1="${y}" x2="${x+CELL}" y2="${y+CELL}" ${ws}/>`);
+    }
+  }
+  svg.innerHTML = chunks.join('');
+}
+
+// ── HUD ────────────────────────────────────────────────────────────────────
+function updateHUD() {
+  const cls = CLASSES[player.className];
+  document.getElementById('hud-icon').textContent  = cls.icon;
+  document.getElementById('hud-class').textContent = player.className;
+  document.getElementById('hud-hp-text').textContent = `${player.hp} / ${player.maxHp}`;
+  document.getElementById('hud-atk').textContent   = player.atk;
+  document.getElementById('hud-def').textContent   = player.def;
+  document.getElementById('hud-spd').textContent   = player.spd;
+  document.getElementById('hud-score').textContent = player.score;
+
+  const pct = Math.max(0, player.hp / player.maxHp * 100);
+  const bar = document.getElementById('hud-hp-bar');
+  bar.style.width = `${pct}%`;
+  bar.style.background = pct > 50 ? '#3fb950' : pct > 25 ? '#f5a623' : '#ef5350';
+
+  const inv = document.getElementById('hud-inv');
+  if (player.inventory.length === 0) {
+    inv.innerHTML = '<li class="inv-empty">Nothing yet…</li>';
+  } else {
+    inv.innerHTML = player.inventory
+      .map(it => `<li class="inv-item">${it.emoji} ${it.name} <span style="color:#7a8392;font-size:10px">${it.desc}</span></li>`)
+      .join('');
+  }
+}
+
+// ── Movement ───────────────────────────────────────────────────────────────
+const KEY_TO_DIR = {
+  ArrowUp: N, w: N, W: N,
+  ArrowDown: S, s: S, S: S,
+  ArrowLeft: W, a: W, A: W,
+  ArrowRight: E, d: E, D: E,
+};
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('modal-combat').classList.contains('open')) return;
+  const dir = KEY_TO_DIR[e.key];
+  if (dir === undefined) return;
+  e.preventDefault();
+  tryMove(dir);
+});
+
+function tryMove(dir) {
+  if (!player) return;
+  const bits = maze[player.row][player.col];
+  if (!(bits & dir)) return; // wall
+
+  const nr = player.row + DR[dir];
+  const nc = player.col + DC[dir];
+  const key = `${nr},${nc}`;
+
+  // Check for monster
+  if (monsters[key] && monsters[key].hp > 0) {
+    startCombat(key);
+    return;
+  }
+
+  // Move
+  player.row = nr;
+  player.col = nc;
+
+  // Check for item
+  if (items[key]) {
+    const item = items[key];
+    item.apply(player);
+    player.inventory.push(item);
+    delete items[key];
+    player.score += 10;
+    showFloaty(`+${item.name}!`);
+  }
+
+  renderMaze();
+  updateHUD();
+
+  // Check win
+  if (player.row === H - 1 && player.col === W - 1) {
+    player.score += 500;
+    endGame(true);
+  }
+}
+
+// ── Combat ─────────────────────────────────────────────────────────────────
+function startCombat(key) {
+  const m = monsters[key];
+  combat = { key, monster: m };
+  document.getElementById('combat-title').textContent = `${m.emoji} ${m.name} appears!`;
+  updateCombatUI();
+  document.getElementById('combat-log').innerHTML = `<span class="event">A wild ${m.name} blocks your path!</span>`;
+  document.getElementById('modal-combat').classList.add('open');
+}
+
+function updateCombatUI() {
+  if (!combat) return;
+  const m = combat.monster;
+  const pct = Math.max(0, m.hp / m.maxHp * 100);
+  document.getElementById('combat-monster-hp').textContent = `${m.name} HP: ${m.hp} / ${m.maxHp}`;
+  document.getElementById('combat-hp-bar').style.width = `${pct}%`;
+}
+
+function combatAttack() {
+  if (!combat) return;
+  const m = combat.monster;
+  const log = document.getElementById('combat-log');
+  let html = '';
+
+  // Player attacks
+  const pDmg = Math.max(1, player.atk - m.def + rng.int(0, 2));
+  m.hp -= pDmg;
+  html += `<span class="player-hit">You deal ${pDmg} damage!</span><br>`;
+
+  if (m.hp <= 0) {
+    m.hp = 0;
+    player.score += m.reward;
+    html += `<span class="event">⚔ ${m.name} defeated! +${m.reward} score</span>`;
+    log.innerHTML = html;
+    updateCombatUI();
+    setTimeout(closeCombat, 1100);
+    return;
+  }
+
+  // Monster attacks back
+  const mDmg = Math.max(1, m.atk - player.def + rng.int(0, 1));
+  player.hp -= mDmg;
+  html += `<span class="monster-hit">${m.name} hits you for ${mDmg}!</span>`;
+
+  log.innerHTML = html;
+  updateCombatUI();
+  updateHUD();
+
+  if (player.hp <= 0) {
+    player.hp = 0;
+    updateHUD();
+    document.getElementById('modal-combat').classList.remove('open');
+    endGame(false);
+  }
+}
+
+function combatFlee() {
+  document.getElementById('modal-combat').classList.remove('open');
+  combat = null;
+}
+
+function closeCombat() {
+  document.getElementById('modal-combat').classList.remove('open');
+  // Move player onto the monster cell
+  const [rStr, cStr] = combat.key.split(',');
+  player.row = parseInt(rStr);
+  player.col = parseInt(cStr);
+  combat = null;
+  renderMaze();
+  updateHUD();
+}
+
+// ── Screens ────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${id}`).classList.add('active');
+}
+
+function endGame(won) {
+  document.getElementById('result-title').textContent = won ? '🏆 Victory!' : '💀 Defeated';
+  document.getElementById('result-title').className = `result-title ${won ? 'result-win' : 'result-loss'}`;
+  document.getElementById('result-score').textContent = `Score: ${player.score}`;
+  document.getElementById('result-msg').textContent = won
+    ? 'You escaped the dungeon!' : 'The dungeon claims another soul…';
+  showScreen('result');
+}
+
+function resetGame() {
+  player = null;
+  combat = null;
+  showScreen('title');
+}
+
+function showFloaty(msg) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;left:50%;top:40%;transform:translateX(-50%);background:#f5a623;color:#0b0d12;padding:8px 18px;border-radius:20px;font-weight:700;font-size:15px;pointer-events:none;z-index:200;animation:fadeup 1.2s ease forwards';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+// ── Class select cards ─────────────────────────────────────────────────────
+function buildClassCards() {
+  const grid = document.getElementById('class-grid');
+  grid.innerHTML = Object.entries(CLASSES).map(([name, cls]) => `
+    <div class="class-card" onclick="selectClass('${name}')">
+      <div class="class-icon">${cls.icon}</div>
+      <div class="class-name">${name}</div>
+      <div class="class-desc">${cls.desc}</div>
+      <div class="class-stats">
+        <div class="stat"><div class="stat-label">HP</div><div class="stat-val">${cls.hp}</div></div>
+        <div class="stat"><div class="stat-label">ATK</div><div class="stat-val">${cls.atk}</div></div>
+        <div class="stat"><div class="stat-label">DEF</div><div class="stat-val">${cls.def}</div></div>
+        <div class="stat"><div class="stat-label">SPD</div><div class="stat-val">${cls.spd}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function selectClass(name) {
+  initGame(name);
+  showScreen('game');
+  document.getElementById('maze-svg').parentElement.scrollTo(0, 0);
+}
+
+// ── Fade-up keyframe ───────────────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = '@keyframes fadeup { 0%{opacity:1;transform:translateX(-50%) translateY(0)} 100%{opacity:0;transform:translateX(-50%) translateY(-40px)} }';
+document.head.appendChild(style);
+
+buildClassCards();
+</script>
+</body>
+</html>
